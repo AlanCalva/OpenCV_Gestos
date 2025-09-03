@@ -100,6 +100,31 @@ const FRAME_THRESHOLD = 3;
 // === Animación para los contadores ===
 function animateCounter(el,value){ el.textContent=value; el.style.transform="scale(1.3)"; el.style.transition="transform 0.3s ease"; setTimeout(()=>{el.style.transform="scale(1)";},300); }
 
+// ====== API MockAPI ======
+const apiUrl = "https://68b8998fb71540504328ab41.mockapi.io/api/v1/gestos";
+
+async function guardarGesto(parpadeo, cejas, boca) {
+  const data = {
+    parpadeo,
+    cejas,
+    boca,
+    fecha_hora: new Date().toISOString()
+  };
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Error en el POST");
+    const result = await res.json();
+    console.log("✅ Registro guardado en MockAPI:", result);
+  } catch (err) {
+    console.error("❌ Error al guardar gesto:", err);
+  }
+}
+
 // ====== Cámara ======
 async function startCamera(){
   if(running) return;
@@ -177,15 +202,36 @@ function onResults(results){
 
   // Parpadeo (histéresis)
   if(!eyesClosed && smoothEAR<earOn) eyesClosed=true;
-  if(eyesClosed && smoothEAR>earOff){ eyesClosed=false; blinkCount++; animateCounter(blinkEl,blinkCount); }
+  if(eyesClosed && smoothEAR>earOff){ 
+    eyesClosed=false; 
+    blinkCount++; 
+    animateCounter(blinkEl,blinkCount); 
+    guardarGesto(blinkCount, browCount, mouthCount); // 👈 Nuevo
+  }
 
   // Cejas
-  if(smoothBrow>browOn){ browFrameCounter++; } 
-  else { if(browFrameCounter>=FRAME_THRESHOLD){ browCount++; animateCounter(browEl,browCount); } browFrameCounter=0; }
+  if(smoothBrow>browOn){ 
+    browFrameCounter++; 
+  } else { 
+    if(browFrameCounter>=FRAME_THRESHOLD){ 
+      browCount++; 
+      animateCounter(browEl,browCount); 
+      guardarGesto(blinkCount, browCount, mouthCount); // 👈 Nuevo
+    } 
+    browFrameCounter=0; 
+  }
 
   // Boca
-  if(smoothMAR>marOn){ mouthFrameCounter++; } 
-  else { if(mouthFrameCounter>=FRAME_THRESHOLD){ mouthCount++; animateCounter(mouthEl,mouthCount); } mouthFrameCounter=0; }
+  if(smoothMAR>marOn){ 
+    mouthFrameCounter++; 
+  } else { 
+    if(mouthFrameCounter>=FRAME_THRESHOLD){ 
+      mouthCount++; 
+      animateCounter(mouthEl,mouthCount); 
+      guardarGesto(blinkCount, browCount, mouthCount); // 👈 Nuevo
+    } 
+    mouthFrameCounter=0; 
+  }
 
   // Dibujo puntos
   ctx2d.save();
