@@ -1,0 +1,62 @@
+/* General */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  scroll-behavior: smooth;
+}
+
+#canvas {
+  max-width: 100%;
+  height: auto;
+  background: #000;
+  transition: transform 0.3s ease-in-out;
+}
+#canvas:hover {
+  transform: scale(1.02);
+}
+
+/* Tarjetas */
+.card {
+  border-radius: 1rem;
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* Contadores */
+.counter-box {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  transition: background 0.3s, transform 0.2s;
+}
+.counter-box:hover {
+  background: #e9ecef;
+  transform: scale(1.03);
+}
+
+/* Textos */
+.card .form-text {
+  font-size: 0.85rem;
+}
+
+.badge.fs-6 {
+  min-width: 42px;
+  text-align: center;
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Footer */
+footer .container {
+  gap: .75rem;
+}
+
+/* Animaciones extra */
+button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}

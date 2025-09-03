@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reconocimiento Facial – OpenCV.js + FaceMesh</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Animaciones -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-light">
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top animate__animated animate__fadeInDown">
+    <div class="container">
+      <a class="navbar-brand fw-bold fs-4" href="#">🤖 FaceTracker</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="#panel">Panel</a></li>
+          <li class="nav-item"><a class="nav-link" href="#info">Acerca</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="container py-4 animate__animated animate__fadeIn">
+    <div class="row g-4 align-items-stretch">
+      <!-- Lado izquierdo: Video/Canvas -->
+      <div class="col-12 col-lg-8">
+        <div class="card shadow-lg border-0 h-100 rounded-4">
+          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center rounded-top-4">
+            <span class="fw-semibold">🎥 Vista en tiempo real</span>
+            <div class="d-flex gap-2">
+              <button id="btnStart" class="btn btn-success btn-sm shadow">Encender cámara</button>
+              <button id="btnStop" class="btn btn-outline-danger btn-sm shadow" disabled>Apagar</button>
+            </div>
+          </div>
+          <div class="card-body d-flex justify-content-center align-items-center bg-dark">
+            <!-- Video oculto (entrada) -->
+            <video id="video" playsinline class="d-none"></video>
+            <!-- Canvas donde dibujamos -->
+            <canvas id="canvas" width="960" height="540" class="rounded shadow border border-secondary"></canvas>
+          </div>
+          <div class="card-footer small text-muted">
+            💡 Consejos: buena iluminación frontal, cara centrada en el cuadro.
+          </div>
+        </div>
+      </div>
+
+      <!-- Lado derecho: Panel de contadores -->
+      <div class="col-12 col-lg-4" id="panel">
+        <div class="card shadow-lg border-0 h-100 rounded-4">
+          <div class="card-header bg-secondary text-white fw-semibold rounded-top-4">📊 Panel de Eventos</div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-12 animate__animated animate__fadeInLeft">
+                <div class="counter-box d-flex justify-content-between align-items-center p-3 rounded-3">
+                  <span class="fw-semibold">Parpadeos</span>
+                  <span id="blinkCount" class="badge text-bg-primary fs-6">0</span>
+                </div>
+              </div>
+              <div class="col-12 animate__animated animate__fadeInLeft animate__delay-1s">
+                <div class="counter-box d-flex justify-content-between align-items-center p-3 rounded-3">
+                  <span class="fw-semibold">Alzadas de cejas</span>
+                  <span id="browCount" class="badge text-bg-success fs-6">0</span>
+                </div>
+              </div>
+              <div class="col-12 animate__animated animate__fadeInLeft animate__delay-2s">
+                <div class="counter-box d-flex justify-content-between align-items-center p-3 rounded-3">
+                  <span class="fw-semibold">Aperturas de boca</span>
+                  <span id="mouthCount" class="badge text-bg-warning fs-6">0</span>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label mb-1">🎚 Sensibilidad general</label>
+                <input id="sensitivity" type="range" min="0" max="100" value="50" class="form-range">
+                <div class="form-text">Ajusta si te cuenta de más o de menos.</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">⚡ FPS estimado: <span id="fps">0</span></label>
+                <div class="progress" role="progressbar" aria-label="fps">
+                  <div id="fpsBar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="card-footer small">
+            Estados: <span id="status" class="text-secondary">Cámara apagada</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <section id="info" class="mt-5 animate__animated animate__fadeInUp">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-info text-white fw-semibold rounded-top-4">ℹ️ ¿Cómo funciona?</div>
+        <div class="card-body">
+          <ol class="mb-0">
+            <li>Se obtiene el video de tu cámara y se procesa con <strong>OpenCV.js</strong>.</li>
+            <li><strong>FaceMesh</strong> detecta 468 puntos clave del rostro en el navegador.</li>
+            <li>Calculamos métricas (EAR, MAR y distancia ceja-ojo) y contamos eventos con histéresis.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-dark text-light py-4 mt-5 animate__animated animate__fadeInUp">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+      <div>© <span id="year"></span> – Programador: <strong>Alan Calva Hernandez</strong></div>
+      <div class="small">Proyecto demo: OpenCV.js + FaceMesh + Bootstrap</div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- OpenCV.js (WASM) -->
+  <script defer src="https://docs.opencv.org/4.x/opencv.js"></script>
+
+  <!-- MediaPipe -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+  <!-- App -->
+  <script defer src="script.js"></script>
+</body>
+</html>
